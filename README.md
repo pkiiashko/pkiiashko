@@ -1,7 +1,7 @@
 <h1 align="center">Hi 👋, I'm Polina Kiiashko</h1>
 <h3 align="center">A data science student from Russia</h3>
 
-- 📫 How to reach me **kolbasaapolina19@gmail.com**
+- 📫 How to reach me **https://t.me/Shinshiiila**
 
 <h3 align="left">Connect with me:</h3>
 <p align="left">
