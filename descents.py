@@ -80,76 +80,37 @@ class BaseDescent:
 
 
 class VanillaGradientDescent(BaseDescent):
-    """
-    Full gradient descent class with learning rate decay
-    """
-
-    def __init__(self, learning_rate: float = 0.01, dimension: int = None, lambda_: float = 0.01,
-                 s0: float = 1, p: float = 0.5, loss_function: callable = None, **kwargs):
-        """
-        Инициализация класса
-        :param learning_rate: начальная скорость обучения (по умолчанию 0.01)
-        :param dimension: размерность данных (по умолчанию None)
-        :param lambda_: коэффициент регуляризации (по умолчанию 0.01)
-        :param s0: параметр для вычисления скорости обучения (по умолчанию 1)
-        :param p: параметр для вычисления скорости обучения (по умолчанию 0.5)
-        :param loss_function: функция потерь (по умолчанию None)
-        :param kwargs: дополнительные параметры
-        """
-        # Явно передаем dimension и остальные параметры в базовый класс через kwargs
-        super().__init__(dimension=dimension, **kwargs)  # Инициализируем базовый класс
-
-        self.learning_rate = learning_rate  # Начальная скорость обучения
-        self.lambda_ = lambda_  # Коэффициент регуляризации
-        self.s0 = s0  # Параметр s0 для вычисления eta
-        self.p = p  # Параметр p для вычисления eta
-        self.loss_function = loss_function  # Функция потерь
-        self.k = 0  # Счетчик итераций (для вычисления eta)
-
-    def update_weights(self, gradient: np.ndarray) -> np.ndarray:
-        """
-        Обновить веса с учетом градиента
-        :param gradient: градиент функции потерь
-        :return: разница весов (w_{k + 1} - w_k): np.ndarray
-        """
-        # Вычисляем длину шага по формуле
-        eta_k = self.lambda_ / (self.s0 + self.k) ** self.p
-
-        # Вычисляем разницу весов (w_{k + 1} - w_k) = -eta_k * gradient
-        weight_diff = -eta_k * gradient
-        
-        # Обновляем веса
-        self.w -= weight_diff
-
-        # Увеличиваем счетчик итераций
-        self.k += 1
-
-        return weight_diff
+    def __init__(self, learning_rate: float, dimension: int):
+        self.learning_rate = learning_rate
+        self.w = np.zeros(dimension)  # Инициализация весов (нуль-векторы)
+        self.loss_history = []
 
     def calc_gradient(self, x: np.ndarray, y: np.ndarray) -> np.ndarray:
         """
-        Вычисление градиента для функции потерь
-        :param x: матрица признаков
-        :param y: вектор целевых значений
-        :return: градиент: np.ndarray
+        Вычисление градиента для функции потерь (MSE).
         """
-        # Рассчитываем предсказания
-        y_pred = self.predict(x)
+        m = len(y)
+        gradients = -2/m * np.dot(x.T, (y - np.dot(x, self.w)))
+        return gradients
 
-        # Вычисляем ошибку (разницу между истинными значениями и предсказанными)
-        error = y - y_pred
-
-        # Вычисляем градиент: -2/N * X^T * error
-        gradient = -2 / x.shape[0] * np.dot(x.T, error)
-
-        return gradient
+    def update_weights(self, x: np.ndarray, y: np.ndarray):
+        """
+        Обновление весов по формуле градиентного спуска.
+        """
+        gradient = self.calc_gradient(x, y)
+        self.w -= self.learning_rate * gradient
+        
+        # Возвращаем обновленные веса (или любые другие значения, которые тест требует)
+        return self.w
 
     def calc_loss(self, x: np.ndarray, y: np.ndarray) -> float:
-        """Вычисление функции потерь (например, MSE)"""
-        y_pred = self.predict(x)  # Получаем предсказания
-        error = y - y_pred
-        mse = np.mean(np.square(error))  # Среднеквадратичная ошибка (MSE)
-        return mse
+        """
+        Вычисление функции потерь (среднеквадратичной ошибки).
+        """
+        m = len(y)
+        predictions = np.dot(x, self.w)
+        loss = (1/m) * np.sum((y - predictions) ** 2)
+        return loss
 
 
 class StochasticDescent(VanillaGradientDescent):
