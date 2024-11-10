@@ -153,7 +153,16 @@ class VanillaGradientDescent(BaseDescent):
         gradient = -2 / x.shape[0] * np.dot(x.T, error)
 
         return gradient
+    def predict(self, x: np.ndarray) -> np.ndarray:
+        """Метод для предсказания значений на основе текущих весов."""
+        return np.dot(x, self.w)  # Линейная модель: y = x * w
 
+    def calc_loss(self, x: np.ndarray, y: np.ndarray) -> float:
+        """Вычисление функции потерь (например, MSE)"""
+        y_pred = self.predict(x)  # Получаем предсказания
+        error = y - y_pred
+        mse = np.mean(np.square(error))  # Среднеквадратичная ошибка (MSE)
+        return mse
 
 
 class StochasticDescent(VanillaGradientDescent):
@@ -163,7 +172,7 @@ class StochasticDescent(VanillaGradientDescent):
 
     def calc_loss(self, x: np.ndarray, y: np.ndarray) -> float:
         """Вычисление функции потерь для стохастического градиентного спуска."""
-        y_pred = self.predict(x)  # Получаем предсказания
+        y_pred = self.predict(x)  # Получаем предсказания с помощью метода predict
         error = y - y_pred
         mse = np.mean(np.square(error))  # Среднеквадратичная ошибка (MSE)
         return mse
