@@ -150,6 +150,67 @@ class VanillaGradientDescent(BaseDescent):
         mse = np.mean(np.square(error))  # Среднеквадратичная ошибка (MSE)
         return mse
 
+class StochasticDescent(VanillaGradientDescent):
+    def __init__(self, dimension: int, lambda_: float = 1e-3, batch_size: int = 50, loss_function: LossFunction = LossFunction.MSE):
+        super().__init__(dimension=dimension, lambda_=lambda_, loss_function=loss_function)
+        # Инициализация весов, если они еще не были инициализированы
+        if not hasattr(self, 'w'):
+            self.init_weights(dimension)  # Явно вызываем инициализацию весов
+        self.batch_size = batch_size
+
+    def calc_loss(self, x: np.ndarray, y: np.ndarray) -> float:
+        """Вычисление функции потерь для стохастического градиентного спуска."""
+        y_pred = self.predict(x)  # Получаем предсказания
+        error = y - y_pred
+        mse = np.mean(np.square(error))  # Среднеквадратичная ошибка (MSE)
+        return mse
+
+    def calc_gradient(self, x: np.ndarray, y: np.ndarray) -> np.ndarray:
+        """
+        Вычисление градиента для стохастического градиентного спуска
+        :param x: матрица признаков
+        :param y: вектор целевых значений
+        :return: градиент: np.ndarray
+        """
+        # Сначала случайным образом выбираем индексы для мини-батча
+        N = x.shape[0]  # Количество примеров
+        batch_indices = np.random.choice(N, self.batch_size, replace=False)
+
+        # Получаем подмножество данных (мини-батч)
+        x_batch = x[batch_indices]
+        y_batch = y[batch_indices]
+
+        # Рассчитываем предсказания для этого батча
+        y_pred = self.predict(x_batch)
+
+        # Ошибка для этого батча
+        error = y_batch - y_pred
+
+        # Вычисляем градиент для MSE с L2-регуляризацией
+        gradient = -2 / self.batch_size * np.dot(x_batch.T, error) + 2 * self.lambda_ * self.w
+
+        return gradient
+
+    def update_weights(self, gradient: np.ndarray) -> np.ndarray:
+        """
+        Обновить веса с учетом градиента
+        :param gradient: градиент функции потерь
+        :return: разница весов (w_{k + 1} - w_k): np.ndarray
+        """
+        # Вычисляем длину шага по формуле
+        eta_k = self.lambda_ / (self.s0 + self.k) ** self.p
+
+        # Вычисляем разницу весов (w_{k + 1} - w_k) = -eta_k * gradient
+        weight_diff = -eta_k * gradient
+        
+        # Обновляем веса
+        self.w -= weight_diff
+
+        # Увеличиваем счетчик итераций
+        self.k += 1
+
+        return weight_diff
+
 
 class MomentumDescent(VanillaGradientDescent):
     """
