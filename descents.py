@@ -45,14 +45,15 @@ class BaseDescent:
         if isinstance(dimension, float):  # Проверяем, если это float
             dimension = int(dimension)  # Преобразуем в int
 
-        # Проверяем, что dimension — это целое число
-        if not isinstance(dimension, int):
-            raise TypeError(f"Expected 'dimension' to be an integer, got {type(dimension)}")
+        # Проверяем, что dimension — это целое число и больше нуля
+        if not isinstance(dimension, int) or dimension <= 0:
+            raise ValueError(f"Dimension must be a positive integer, got {dimension}")
 
-        
         self.dimension = dimension  # Инициализируем размерность как целое число
 
+        # Инициализируем веса
         self.w: np.ndarray = np.random.rand(self.dimension)
+
         self.lr: LearningRate = LearningRate(lambda_=lambda_)
         self.loss_function: LossFunction = loss_function
 
@@ -85,18 +86,10 @@ class BaseDescent:
         :param y: targets array
         :return: loss: float
         """
-        # TODO: implement loss calculation function
-        # Получаем предсказания
         y_pred = self.predict(x)
-
-        # Рассчитываем ошибку (разницу между истинными значениями и предсказанными)
         error = y - y_pred
-
-        # Вычисляем MSE
         mse = np.mean(np.square(error))
-
         return mse
-        raise NotImplementedError('BaseDescent calc_loss function not implemented')
 
     def predict(self, x: np.ndarray) -> np.ndarray:
         """
@@ -104,12 +97,13 @@ class BaseDescent:
         :param x: features array
         :return: prediction: np.ndarray
         """
-        # TODO: implement prediction function
+        # Проверяем, что размерности согласованы
+        if x.shape[1] != self.w.shape[0]:
+            raise ValueError(f"Mismatch between input features shape {x.shape} and weights shape {self.w.shape}")
+
         # Линейная регрессия: y_pred = Xw
         y_pred = np.dot(x, self.w)
-
         return y_pred
-        raise NotImplementedError('BaseDescent predict function not implemented')
 
 
 class VanillaGradientDescent(BaseDescent):
@@ -176,7 +170,6 @@ class VanillaGradientDescent(BaseDescent):
 
         return gradient
 
-        
 
 class StochasticDescent(VanillaGradientDescent):
     """
@@ -230,101 +223,48 @@ class MomentumDescent(VanillaGradientDescent):
         Update weights with respect to gradient
         :return: weight difference (w_{k + 1} - w_k): np.ndarray
         """
-        # TODO: implement updating weights function
         # Обновляем скорость (инерцию)
         self.h = self.alpha * self.h + self.learning_rate * gradient
 
         # Обновляем веса, двигаясь в сторону инерции
         weight_diff = self.h
 
-        # Обновляем текущие веса
-        self.w -= weight_diff
-
-        return weight_diff
-        raise NotImplementedError('MomentumDescent update_weights function not implemented')
-
-
-class Adam(VanillaGradientDescent):
-    """
-    Adaptive Moment Estimation gradient descent class
-    """
-
-    def __init__(self, dimension: int, lambda_: float = 1e-3, loss_function: LossFunction = LossFunction.MSE):
-        super().__init__(dimension, lambda_, loss_function)
-        self.eps: float = 1e-8
-
-        self.m: np.ndarray = np.zeros(dimension)
-        self.v: np.ndarray = np.zeros(dimension)
-
-        self.beta_1: float = 0.9
-        self.beta_2: float = 0.999
-
-        self.iteration: int = 0
-
-    def update_weights(self, gradient: np.ndarray) -> np.ndarray:
-        """
-        Update weights & params
-        :return: weight difference (w_{k + 1} - w_k): np.ndarray
-        """
-        # TODO: implement updating weights function
-        # Накопление квадратов градиентов
-        self.G += gradient ** 2
-
-        # Обновляем веса с учетом накопленных квадратов градиентов
-        weight_diff = (self.learning_rate / (np.sqrt(self.G) + self.epsilon)) * gradient
-
         # Обновляем веса
         self.w -= weight_diff
 
         return weight_diff
-        raise NotImplementedError('Adagrad update_weights function not implemented')
 
 
-class BaseDescentReg(BaseDescent):
+class Adam(VanillaGradientDescent):
     """
-    A base class with regularization
+    Adam gradient descent with momentum and adaptive learning rate
     """
 
-    def __init__(self, *args, mu: float = 0, **kwargs):
+    def __init__(self, dimension: int, lambda_: float = 1e-3, loss_function: LossFunction = LossFunction.MSE):
+        super().__init__(dimension, lambda_, loss_function)
+        self.beta1: float = 0.9
+        self.beta2: float = 0.999
+        self.epsilon: float = 1e-8
+
+        self.m: np.ndarray = np.zeros(dimension)
+        self.v: np.ndarray = np.zeros(dimension)
+
+    def update_weights(self, gradient: np.ndarray) -> np.ndarray:
         """
-        :param mu: regularization coefficient (float)
+        Update weights with respect to gradient
+        :return: weight difference (w_{k + 1} - w_k): np.ndarray
         """
-        super().__init__(*args, **kwargs)
+        self.m = self.beta1 * self.m + (1 - self.beta1) * gradient
+        self.v = self.beta2 * self.v + (1 - self.beta2) * (gradient ** 2)
 
-        self.mu = mu
+        m_hat = self.m / (1 - self.beta1 ** (self.k + 1))
+        v_hat = self.v / (1 - self.beta2 ** (self.k + 1))
 
-    def calc_gradient(self, x: np.ndarray, y: np.ndarray) -> np.ndarray:
-        """
-        Calculate gradient of loss function and L2 regularization with respect to weights
-        """
-        l2_gradient = self.mu * self.w  # TODO: replace with L2 gradient calculation
+        weight_diff = self.learning_rate * m_hat / (np.sqrt(v_hat) + self.epsilon)
 
+        self.w -= weight_diff
 
-        return super().calc_gradient(x, y) + l2_gradient * self.mu
-
-
-class VanillaGradientDescentReg(BaseDescentReg, VanillaGradientDescent):
-    """
-    Full gradient descent with regularization class
-    """
-
-
-class StochasticDescentReg(BaseDescentReg, StochasticDescent):
-    """
-    Stochastic gradient descent with regularization class
-    """
-
-
-class MomentumDescentReg(BaseDescentReg, MomentumDescent):
-    """
-    Momentum gradient descent with regularization class
-    """
-
-
-class AdamReg(BaseDescentReg, Adam):
-    """
-    Adaptive gradient algorithm with regularization class
-    """
+        return weight_diff
 
 
 def get_descent(descent_config: dict) -> BaseDescent:
@@ -359,4 +299,3 @@ def get_descent(descent_config: dict) -> BaseDescent:
 
     # Создание и возврат объекта спуска с корректно переданными аргументами
     return descent_class(**kwargs)
-
