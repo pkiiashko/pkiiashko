@@ -45,10 +45,7 @@ class BaseDescent:
         if isinstance(dimension, float):  # Проверяем, если это float
             dimension = int(dimension)  # Преобразуем в int
 
-        # Проверяем, что dimension — это целое число и больше нуля
-        if not isinstance(dimension, int) or dimension <= 0:
-            raise ValueError(f"Dimension must be a positive integer, got {dimension}")
-
+        
         self.dimension = dimension  # Инициализируем размерность как целое число
 
         # Если dimension == 0, вызываем метод init_weights для инициализации весов
