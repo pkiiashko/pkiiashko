@@ -118,7 +118,8 @@ class VanillaGradientDescent(BaseDescent):
         :param loss_function: функция потерь (по умолчанию None)
         :param kwargs: дополнительные параметры
         """
-        super().__init__(**kwargs)  # Инициализируем базовый класс
+        # Явно передаем dimension и остальные параметры в базовый класс через kwargs
+        super().__init__(dimension=dimension, **kwargs)  # Инициализируем базовый класс
         self.learning_rate = learning_rate  # Начальная скорость обучения
         self.lambda_ = lambda_  # Коэффициент регуляризации
         self.s0 = s0  # Параметр s0 для вычисления eta
@@ -163,6 +164,7 @@ class VanillaGradientDescent(BaseDescent):
         gradient = -2 / x.shape[0] * np.dot(x.T, error)
 
         return gradient
+
         
 
 class StochasticDescent(VanillaGradientDescent):
