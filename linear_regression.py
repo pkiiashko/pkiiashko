@@ -34,6 +34,26 @@ class LinearRegression:
         :return: self
         """
         # TODO: fit weights to x and y
+        # Инициализация веса (обычно инициализируется нулями или случайными значениями)
+        self.descent.init_weights(x.shape[1])
+
+        for iteration in range(self.max_iter):
+        # Получаем текущие предсказания модели
+            predictions = self.predict(x)
+        
+        # Вычисляем текущую ошибку (потери) и сохраняем её в историю
+            loss = self.calc_loss(x, y)
+            self.loss_history.append(loss)
+
+        # Проверяем условие остановки по разнице в потере (критерий сходимости)
+            if iteration > 0 and abs(self.loss_history[-2] - loss) < self.tolerance:
+                print(f'Converged at iteration {iteration}, loss: {loss}')
+                break
+
+        # Обновляем веса с помощью градиентного спуска
+            self.descent.step(x, y, predictions)
+
+            return self
         raise NotImplementedError('LinearRegression fit function not implemented')
 
     def predict(self, x: np.ndarray) -> np.ndarray:
