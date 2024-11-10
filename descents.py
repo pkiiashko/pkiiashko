@@ -220,16 +220,13 @@ class MomentumDescent(VanillaGradientDescent):
 
     def update_weights(self, gradient: np.ndarray) -> np.ndarray:
         """
-        Update weights with respect to gradient
+        Update weights with momentum
         :return: weight difference (w_{k + 1} - w_k): np.ndarray
         """
-        # Обновляем скорость (инерцию)
-        self.h = self.alpha * self.h + self.learning_rate * gradient
+        self.h = self.alpha * self.h + self.lambda_ * gradient
 
-        # Обновляем веса, двигаясь в сторону инерции
-        weight_diff = self.h
+        weight_diff = self.learning_rate * self.h
 
-        # Обновляем веса
         self.w -= weight_diff
 
         return weight_diff
