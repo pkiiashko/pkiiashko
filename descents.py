@@ -41,10 +41,21 @@ class BaseDescent:
         :param lambda_: learning rate parameter
         :param loss_function: optimized loss function
         """
-        # Убедимся, что dimension — целое число
-        self.dimension = int(dimension)  # Преобразуем в int, если это необходимо
-        
-        self.w: np.ndarray = np.random.rand(dimension)
+        # Убедимся, что dimension — это целое число
+        if isinstance(dimension, float):  # Проверяем, если это float
+            dimension = int(dimension)  # Преобразуем в int
+
+        # Проверяем, что dimension — это целое число
+        if not isinstance(dimension, int):
+            raise TypeError(f"Expected 'dimension' to be an integer, got {type(dimension)}")
+
+        # Убедимся, что dimension положительное число
+        if dimension <= 0:
+            raise ValueError(f"Dimension must be a positive integer, got {dimension}")
+
+        self.dimension = dimension  # Инициализируем размерность как целое число
+
+        self.w: np.ndarray = np.random.rand(self.dimension)
         self.lr: LearningRate = LearningRate(lambda_=lambda_)
         self.loss_function: LossFunction = loss_function
 
