@@ -59,8 +59,18 @@ class BaseDescent:
         self.w = np.zeros(dimension)
 
     def step(self, x: np.ndarray, y: np.ndarray) -> np.ndarray:
-        return self.update_weights(self.calc_gradient(x, y))
-
+    """
+    Шаг градиентного спуска.
+    :param x: Признаки (features)
+    :param y: Целевые значения (targets)
+    :return: Разница весов (w_{k + 1} - w_k)
+    """
+    # Вычисляем градиент на основе данных x и целевых значений y
+    gradient = self.calc_gradient(x, y)
+    
+    # Обновляем веса на основе вычисленного градиента
+    return self.update_weights(gradient)
+    
     def update_weights(self, gradient: np.ndarray) -> np.ndarray:
         """
         Template for update_weights function
