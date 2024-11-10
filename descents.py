@@ -45,10 +45,9 @@ class BaseDescent:
         if isinstance(dimension, float):  # Проверяем, если это float
             dimension = int(dimension)  # Преобразуем в int
 
-        
         self.dimension = dimension  # Инициализируем размерность как целое число
 
-        # Инициализируем веса сразу, чтобы они не оставались None
+        # Инициализируем веса
         self.init_weights(self.dimension)
 
         self.lr: LearningRate = LearningRate(lambda_=lambda_)
