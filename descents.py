@@ -155,7 +155,10 @@ class VanillaGradientDescent(BaseDescent):
 
 class StochasticDescent(VanillaGradientDescent):
     def __init__(self, dimension: int, lambda_: float = 1e-3, batch_size: int = 50, loss_function: LossFunction = LossFunction.MSE):
-        super().__init__(dimension, lambda_, loss_function)
+        super().__init__(dimension=dimension, lambda_=lambda_, loss_function=loss_function)
+        # Инициализация весов, если они еще не были инициализированы
+        if not hasattr(self, 'w'):
+            self.init_weights(dimension)  # Явно вызываем инициализацию весов
         self.batch_size = batch_size
 
     def calc_loss(self, x: np.ndarray, y: np.ndarray) -> float:
@@ -164,7 +167,7 @@ class StochasticDescent(VanillaGradientDescent):
         error = y - y_pred
         mse = np.mean(np.square(error))  # Среднеквадратичная ошибка (MSE)
         return mse
-        
+
     def calc_gradient(self, x: np.ndarray, y: np.ndarray) -> np.ndarray:
         """
         Вычисление градиента для стохастического градиентного спуска
@@ -210,10 +213,6 @@ class StochasticDescent(VanillaGradientDescent):
         self.k += 1
 
         return weight_diff
-
-
-# Теперь код с исправлением, который должен работать без ошибок
-
 
 class MomentumDescent(VanillaGradientDescent):
     """
