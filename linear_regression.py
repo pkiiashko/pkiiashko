@@ -11,6 +11,7 @@ class LinearRegression:
         self.tolerance = tolerance
         self.max_iter = max_iter
         self.loss_history = []  # История значений функции потерь
+        self.previous_w = None  # Для отслеживания изменения весов
 
     def fit(self, x: np.ndarray, y: np.ndarray):
         """
@@ -19,22 +20,46 @@ class LinearRegression:
         :param y: Целевые значения
         :return: self
         """
+        # Добавляем начальное значение потерь до первого шага
+        loss = self.descent.calc_loss(x, y)
+        self.loss_history.append(loss)
+        
         for iteration in range(self.max_iter):
-            # Обновляем веса с помощью градиентного спуска (теперь без predictions)
+            # Обновляем веса с помощью градиентного спуска
             weight_diff = self.descent.step(x, y)
             loss = self.descent.calc_loss(x, y)
             self.loss_history.append(loss)
-
-            # Проверка на сходимость
-            if iteration > 0 and abs(self.loss_history[-1] - self.loss_history[-2]) < self.tolerance:
+            
+            # Проверка критериев останова
+            if self.check_convergence():
                 print(f"Converged at iteration {iteration}")
                 break
 
-        # После завершения обучения нужно добавить финальную потерю, если она еще не была добавлена
-        if len(self.loss_history) < self.max_iter:
-            self.loss_history.append(loss)
-
         return self
+
+    def check_convergence(self) -> bool:
+        """
+        Проверка критериев останова:
+        1. Норма разности весов меньше tolerance.
+        2. Наличие NaN в весах.
+        3. Достигнут максимум итераций.
+        """
+        if self.previous_w is None:
+            self.previous_w = self.descent.w.copy()
+            return False
+        
+        # 1. Квадрат евклидовой нормы разности весов на двух соседних итерациях
+        weight_diff_norm = np.linalg.norm(self.descent.w - self.previous_w)
+        if weight_diff_norm < self.tolerance:
+            return True
+        
+        # 2. Проверка на NaN в весах
+        if np.any(np.isnan(self.descent.w)):
+            return True
+        
+        # Обновляем предыдущее значение весов
+        self.previous_w = self.descent.w.copy()
+        return False
 
     def predict(self, x: np.ndarray) -> np.ndarray:
         """
@@ -51,4 +76,3 @@ class LinearRegression:
         :param y: targets array
         """
         return self.descent.calc_loss(x, y)
-
