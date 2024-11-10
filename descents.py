@@ -170,9 +170,13 @@ class StochasticDescent(VanillaGradientDescent):
         super().__init__(dimension, lambda_, loss_function)
         self.batch_size = batch_size
 
+        # Если веса еще не были инициализированы в базовом классе, то инициализируем их здесь
+        if self.w is None or len(self.w) == 0:
+            self.init_weights(dimension)
+
     def calc_loss(self, x: np.ndarray, y: np.ndarray) -> float:
         """Вычисление функции потерь для стохастического градиентного спуска."""
-        y_pred = self.predict(x)  # Получаем предсказания с помощью метода predict
+        y_pred = self.predict(x)  # Получаем предсказания
         error = y - y_pred
         mse = np.mean(np.square(error))  # Среднеквадратичная ошибка (MSE)
         return mse
