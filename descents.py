@@ -52,10 +52,14 @@ class BaseDescent:
         self.dimension = dimension  # Инициализируем размерность как целое число
 
         # Инициализируем веса
-        self.w: np.ndarray = np.random.rand(self.dimension)
+        self.init_weights(dimension)
 
         self.lr: LearningRate = LearningRate(lambda_=lambda_)
         self.loss_function: LossFunction = loss_function
+
+    def init_weights(self, dimension: int) -> None:
+        """Инициализация весов нулями."""
+        self.w = np.zeros(dimension)
 
     def step(self, x: np.ndarray, y: np.ndarray) -> np.ndarray:
         return self.update_weights(self.calc_gradient(x, y))
@@ -131,10 +135,6 @@ class VanillaGradientDescent(BaseDescent):
         self.p = p  # Параметр p для вычисления eta
         self.loss_function = loss_function  # Функция потерь
         self.k = 0  # Счетчик итераций (для вычисления eta)
-    
-   def init_weights(self, dimension: int) -> None:
-        """Инициализация весов нулями."""
-        self.w = np.zeros(dimension)
 
     def update_weights(self, gradient: np.ndarray) -> np.ndarray:
         """
