@@ -106,20 +106,31 @@ class VanillaGradientDescent(BaseDescent):
     Full gradient descent class
     """
 
+    def __init__(self, learning_rate: float = 0.01, **kwargs):
+        """
+        Инициализация класса
+        :param learning_rate: скорость обучения (по умолчанию 0.01)
+        :param kwargs: другие параметры, передаваемые в базовый класс
+        """
+        super().__init__(**kwargs)  # Инициализируем базовый класс
+        self.learning_rate = learning_rate  # Устанавливаем скорость обучения
+
     def update_weights(self, gradient: np.ndarray) -> np.ndarray:
         """
         Update weights with respect to gradient
         :return: weight difference (w_{k + 1} - w_k): np.ndarray
         """
-        # TODO: implement updating weights function
         # Обновляем веса по формуле w_{k+1} = w_k - eta * gradient
         weight_diff = self.learning_rate * gradient
         self.w -= weight_diff
 
         return weight_diff
-        
+
     def calc_gradient(self, x: np.ndarray, y: np.ndarray) -> np.ndarray:
-        # TODO: implement calculating gradient function
+        """
+        Calculating the gradient for the cost function
+        :return: gradient: np.ndarray
+        """
         # Рассчитываем предсказания
         y_pred = self.predict(x)
 
@@ -130,8 +141,7 @@ class VanillaGradientDescent(BaseDescent):
         gradient = -2 / x.shape[0] * np.dot(x.T, error)
 
         return gradient
-        raise NotImplementedError('VanillaGradientDescent calc_gradient function not implemented')
-
+        
 
 class StochasticDescent(VanillaGradientDescent):
     """
