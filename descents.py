@@ -48,7 +48,7 @@ class BaseDescent:
         
         self.dimension = dimension  # Инициализируем размерность как целое число
 
-        # Если dimension == 0, вызываем метод init_weights для инициализации весов
+        # Инициализируем веса сразу, чтобы они не оставались None
         self.init_weights(self.dimension)
 
         self.lr: LearningRate = LearningRate(lambda_=lambda_)
@@ -107,15 +107,6 @@ class VanillaGradientDescent(BaseDescent):
         self.loss_function = loss_function  # Функция потерь
         self.k = 0  # Счетчик итераций (для вычисления eta)
 
-        # Инициализируем веса, если они еще не были заданы
-        if self.w is None or len(self.w) == 0:
-            self.init_weights(self.dimension)  # Инициализация весов нулями
-
-    def init_weights(self, dimension: int) -> None:
-        """Инициализация весов нулями."""
-        if dimension > 0:
-            self.w = np.zeros(dimension)  # Инициализируем веса нулями
-
     def update_weights(self, gradient: np.ndarray) -> np.ndarray:
         """
         Обновить веса с учетом градиента
@@ -153,9 +144,6 @@ class VanillaGradientDescent(BaseDescent):
         gradient = -2 / x.shape[0] * np.dot(x.T, error)
 
         return gradient
-    def predict(self, x: np.ndarray) -> np.ndarray:
-        """Метод для предсказания значений на основе текущих весов."""
-        return np.dot(x, self.w)  # Линейная модель: y = x * w
 
     def calc_loss(self, x: np.ndarray, y: np.ndarray) -> float:
         """Вычисление функции потерь (например, MSE)"""
@@ -169,10 +157,6 @@ class StochasticDescent(VanillaGradientDescent):
     def __init__(self, dimension: int, lambda_: float = 1e-3, batch_size: int = 50, loss_function: LossFunction = LossFunction.MSE):
         super().__init__(dimension, lambda_, loss_function)
         self.batch_size = batch_size
-
-        # Если веса еще не были инициализированы в базовом классе, то инициализируем их здесь
-        if self.w is None or len(self.w) == 0:
-            self.init_weights(dimension)
 
     def calc_loss(self, x: np.ndarray, y: np.ndarray) -> float:
         """Вычисление функции потерь для стохастического градиентного спуска."""
@@ -226,6 +210,9 @@ class StochasticDescent(VanillaGradientDescent):
         self.k += 1
 
         return weight_diff
+
+
+# Теперь код с исправлением, который должен работать без ошибок
 
 
 class MomentumDescent(VanillaGradientDescent):
