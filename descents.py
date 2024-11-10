@@ -131,6 +131,10 @@ class VanillaGradientDescent(BaseDescent):
         self.p = p  # Параметр p для вычисления eta
         self.loss_function = loss_function  # Функция потерь
         self.k = 0  # Счетчик итераций (для вычисления eta)
+    
+   def init_weights(self, dimension: int) -> None:
+        """Инициализация весов нулями."""
+        self.w = np.zeros(dimension)
 
     def update_weights(self, gradient: np.ndarray) -> np.ndarray:
         """
