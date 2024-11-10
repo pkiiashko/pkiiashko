@@ -102,12 +102,22 @@ class VanillaGradientDescent(BaseDescent):
         """
         # Явно передаем dimension и остальные параметры в базовый класс через kwargs
         super().__init__(dimension=dimension, **kwargs)  # Инициализируем базовый класс
+
         self.learning_rate = learning_rate  # Начальная скорость обучения
         self.lambda_ = lambda_  # Коэффициент регуляризации
         self.s0 = s0  # Параметр s0 для вычисления eta
         self.p = p  # Параметр p для вычисления eta
         self.loss_function = loss_function  # Функция потерь
         self.k = 0  # Счетчик итераций (для вычисления eta)
+
+        # Инициализируем веса, если они еще не были заданы
+        if self.w is None or len(self.w) == 0:
+            self.init_weights(self.dimension)  # Инициализация весов нулями
+
+    def init_weights(self, dimension: int) -> None:
+        """Инициализация весов нулями."""
+        if dimension > 0:
+            self.w = np.zeros(dimension)  # Инициализируем веса нулями
 
     def update_weights(self, gradient: np.ndarray) -> np.ndarray:
         """
@@ -146,6 +156,7 @@ class VanillaGradientDescent(BaseDescent):
         gradient = -2 / x.shape[0] * np.dot(x.T, error)
 
         return gradient
+
 
 
 class StochasticDescent(VanillaGradientDescent):
