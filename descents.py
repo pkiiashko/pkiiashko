@@ -41,6 +41,9 @@ class BaseDescent:
         :param lambda_: learning rate parameter
         :param loss_function: optimized loss function
         """
+        # Убедимся, что dimension — целое число
+        self.dimension = int(dimension)  # Преобразуем в int, если это необходимо
+        
         self.w: np.ndarray = np.random.rand(dimension)
         self.lr: LearningRate = LearningRate(lambda_=lambda_)
         self.loss_function: LossFunction = loss_function
