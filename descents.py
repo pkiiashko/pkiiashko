@@ -45,62 +45,32 @@ class BaseDescent:
         if isinstance(dimension, float):  # Проверяем, если это float
             dimension = int(dimension)  # Преобразуем в int
 
-        
+        # Проверяем, что dimension — это целое число и больше нуля
+        if not isinstance(dimension, int) or dimension <= 0:
+            raise ValueError(f"Dimension must be a positive integer, got {dimension}")
+
         self.dimension = dimension  # Инициализируем размерность как целое число
 
-        # Инициализируем веса
-        self.init_weights(dimension)
+        # Если dimension == 0, вызываем метод init_weights для инициализации весов
+        self.init_weights(self.dimension)
 
         self.lr: LearningRate = LearningRate(lambda_=lambda_)
         self.loss_function: LossFunction = loss_function
 
     def init_weights(self, dimension: int) -> None:
         """Инициализация весов нулями."""
-        self.w = np.zeros(dimension)
+        if dimension > 0:
+            self.w = np.zeros(dimension)  # Инициализируем веса нулями
 
     def step(self, x: np.ndarray, y: np.ndarray) -> np.ndarray:
-    """
-    Шаг градиентного спуска.
-    :param x: Признаки (features)
-    :param y: Целевые значения (targets)
-    :return: Разница весов (w_{k + 1} - w_k)
-    """
-    # Вычисляем градиент на основе данных x и целевых значений y
-    gradient = self.calc_gradient(x, y)
-    
-    # Обновляем веса на основе вычисленного градиента
-    return self.update_weights(gradient)
-    
-    def update_weights(self, gradient: np.ndarray) -> np.ndarray:
         """
-        Template for update_weights function
-        Update weights with respect to gradient
-        :param gradient: gradient
-        :return: weight difference (w_{k + 1} - w_k): np.ndarray
+        Шаг градиентного спуска.
+        :param x: Признаки (features)
+        :param y: Целевые значения (targets)
+        :return: Разница весов (w_{k + 1} - w_k)
         """
-        pass
-
-    def calc_gradient(self, x: np.ndarray, y: np.ndarray) -> np.ndarray:
-        """
-        Template for calc_gradient function
-        Calculate gradient of loss function with respect to weights
-        :param x: features array
-        :param y: targets array
-        :return: gradient: np.ndarray
-        """
-        pass
-
-    def calc_loss(self, x: np.ndarray, y: np.ndarray) -> float:
-        """
-        Calculate loss for x and y with our weights
-        :param x: features array
-        :param y: targets array
-        :return: loss: float
-        """
-        y_pred = self.predict(x)
-        error = y - y_pred
-        mse = np.mean(np.square(error))
-        return mse
+        gradient = self.calc_gradient(x, y)
+        return self.update_weights(gradient)
 
     def predict(self, x: np.ndarray) -> np.ndarray:
         """
@@ -108,12 +78,8 @@ class BaseDescent:
         :param x: features array
         :return: prediction: np.ndarray
         """
-        # Проверяем, что размерности согласованы
-        if x.shape[1] != self.w.shape[0]:
-            raise ValueError(f"Mismatch between input features shape {x.shape} and weights shape {self.w.shape}")
-
         # Линейная регрессия: y_pred = Xw
-        y_pred = np.dot(x, self.w)
+        y_pred = np.dot(x, self.w)  # Убедитесь, что self.w имеет правильную размерность
         return y_pred
 
 
