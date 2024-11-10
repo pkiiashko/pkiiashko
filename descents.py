@@ -103,33 +103,55 @@ class BaseDescent:
 
 class VanillaGradientDescent(BaseDescent):
     """
-    Full gradient descent class
+    Full gradient descent class with learning rate decay
     """
 
-    def __init__(self, learning_rate: float = 0.01, **kwargs):
+    def __init__(self, learning_rate: float = 0.01, dimension: int = None, lambda_: float = 0.01,
+                 s0: float = 1, p: float = 0.5, loss_function: callable = None, **kwargs):
         """
         Инициализация класса
-        :param learning_rate: скорость обучения (по умолчанию 0.01)
-        :param kwargs: другие параметры, передаваемые в базовый класс
+        :param learning_rate: начальная скорость обучения (по умолчанию 0.01)
+        :param dimension: размерность данных (по умолчанию None)
+        :param lambda_: коэффициент регуляризации (по умолчанию 0.01)
+        :param s0: параметр для вычисления скорости обучения (по умолчанию 1)
+        :param p: параметр для вычисления скорости обучения (по умолчанию 0.5)
+        :param loss_function: функция потерь (по умолчанию None)
+        :param kwargs: дополнительные параметры
         """
         super().__init__(**kwargs)  # Инициализируем базовый класс
-        self.learning_rate = learning_rate  # Устанавливаем скорость обучения
+        self.learning_rate = learning_rate  # Начальная скорость обучения
+        self.lambda_ = lambda_  # Коэффициент регуляризации
+        self.s0 = s0  # Параметр s0 для вычисления eta
+        self.p = p  # Параметр p для вычисления eta
+        self.loss_function = loss_function  # Функция потерь
+        self.k = 0  # Счетчик итераций (для вычисления eta)
 
     def update_weights(self, gradient: np.ndarray) -> np.ndarray:
         """
-        Update weights with respect to gradient
-        :return: weight difference (w_{k + 1} - w_k): np.ndarray
+        Обновить веса с учетом градиента
+        :param gradient: градиент функции потерь
+        :return: разница весов (w_{k + 1} - w_k): np.ndarray
         """
-        # Обновляем веса по формуле w_{k+1} = w_k - eta * gradient
-        weight_diff = self.learning_rate * gradient
+        # Вычисляем длину шага по формуле
+        eta_k = self.lambda_ / (self.s0 + self.k) ** self.p
+
+        # Вычисляем разницу весов (w_{k + 1} - w_k) = -eta_k * gradient
+        weight_diff = -eta_k * gradient
+        
+        # Обновляем веса
         self.w -= weight_diff
+
+        # Увеличиваем счетчик итераций
+        self.k += 1
 
         return weight_diff
 
     def calc_gradient(self, x: np.ndarray, y: np.ndarray) -> np.ndarray:
         """
-        Calculating the gradient for the cost function
-        :return: gradient: np.ndarray
+        Вычисление градиента для функции потерь
+        :param x: матрица признаков
+        :param y: вектор целевых значений
+        :return: градиент: np.ndarray
         """
         # Рассчитываем предсказания
         y_pred = self.predict(x)
