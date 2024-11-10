@@ -334,6 +334,19 @@ def get_descent(descent_config: dict) -> BaseDescent:
     descent_name = descent_config.get('descent_name', 'full')
     regularized = descent_config.get('regularized', False)
 
+    # Извлекаем параметры из конфигурации
+    kwargs = descent_config.get('kwargs', {})
+
+    # Проверяем, что 'dimension' является положительным целым числом
+    dimension = kwargs.get('dimension', 0)  # Если 'dimension' отсутствует, по умолчанию 0
+
+    if dimension <= 0:
+        raise ValueError(f"Dimension must be a positive integer, got {dimension}")
+
+    # Убедимся, что dimension — целое число
+    kwargs['dimension'] = int(dimension)
+
+    # Словарь для отображения имен спусков на соответствующие классы
     descent_mapping: Dict[str, Type[BaseDescent]] = {
         'full': VanillaGradientDescent if not regularized else VanillaGradientDescentReg,
         'stochastic': StochasticDescent if not regularized else StochasticDescentReg,
@@ -341,9 +354,12 @@ def get_descent(descent_config: dict) -> BaseDescent:
         'adam': Adam if not regularized else AdamReg
     }
 
+    # Проверка на корректность названия метода спуска
     if descent_name not in descent_mapping:
-        raise ValueError(f'Incorrect descent name, use one of these: {descent_mapping.keys()}')
+        raise ValueError(f'Incorrect descent name, use one of these: {list(descent_mapping.keys())}')
 
     descent_class = descent_mapping[descent_name]
 
-    return descent_class(**descent_config.get('kwargs', {}))
+    # Создание и возврат объекта спуска с корректно переданными аргументами
+    return descent_class(**kwargs)
+
