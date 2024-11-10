@@ -259,35 +259,58 @@ class MomentumDescent(VanillaGradientDescent):
 
 class Adam(VanillaGradientDescent):
     """
-    Adam gradient descent with momentum and adaptive learning rate
+    Adam gradient descent class
     """
 
-    def __init__(self, dimension: int, lambda_: float = 1e-3, loss_function: LossFunction = LossFunction.MSE):
-        super().__init__(dimension, lambda_, loss_function)
-        self.beta1: float = 0.9
-        self.beta2: float = 0.999
-        self.epsilon: float = 1e-8
+    def __init__(self, dimension: int, lambda_: float = 1e-3, beta1: float = 0.9, beta2: float = 0.999,
+                 epsilon: float = 1e-8, loss_function: LossFunction = LossFunction.MSE):
+        """
+        :param dimension: размерность данных
+        :param lambda_: коэффициент регуляризации
+        :param beta1: коэффициент для 1-го момента
+        :param beta2: коэффициент для 2-го момента
+        :param epsilon: небольшое значение для предотвращения деления на ноль
+        :param loss_function: функция потерь
+        """
+        # Вызов конструктора родительского класса для инициализации всех атрибутов
+        super().__init__(dimension=dimension, lambda_=lambda_, loss_function=loss_function)
+        
+        # Параметры для алгоритма Adam
+        self.beta1 = beta1
+        self.beta2 = beta2
+        self.epsilon = epsilon
 
-        self.m: np.ndarray = np.zeros(dimension)
-        self.v: np.ndarray = np.zeros(dimension)
+        # Инициализация моментов
+        self.m = np.zeros(dimension)  # Момент для первого порядка (градиенты)
+        self.v = np.zeros(dimension)  # Момент для второго порядка (квадраты градиентов)
+
+        # Счетчик шагов
+        self.t = 0
 
     def update_weights(self, gradient: np.ndarray) -> np.ndarray:
         """
-        Update weights with respect to gradient
-        :return: weight difference (w_{k + 1} - w_k): np.ndarray
+        Обновление весов с использованием алгоритма Adam.
+        :param gradient: градиент функции потерь
+        :return: разница весов (w_{k + 1} - w_k): np.ndarray
         """
+        # Увеличиваем счетчик шагов
+        self.t += 1
+
+        # Обновление моментов первого и второго порядка
         self.m = self.beta1 * self.m + (1 - self.beta1) * gradient
-        self.v = self.beta2 * self.v + (1 - self.beta2) * (gradient ** 2)
+        self.v = self.beta2 * self.v + (1 - self.beta2) * gradient**2
 
-        m_hat = self.m / (1 - self.beta1 ** (self.k + 1))
-        v_hat = self.v / (1 - self.beta2 ** (self.k + 1))
+        # Коррекция смещения моментов
+        m_hat = self.m / (1 - self.beta1**self.t)
+        v_hat = self.v / (1 - self.beta2**self.t)
 
+        # Вычисление шага
         weight_diff = self.learning_rate * m_hat / (np.sqrt(v_hat) + self.epsilon)
 
+        # Обновление весов
         self.w -= weight_diff
 
         return weight_diff
-
 
 def get_descent(descent_config: dict) -> BaseDescent:
     descent_name = descent_config.get('descent_name', 'full')
