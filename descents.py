@@ -75,6 +75,16 @@ class BaseDescent:
         :return: loss: float
         """
         # TODO: implement loss calculation function
+        # Получаем предсказания
+        y_pred = self.predict(x)
+
+        # Рассчитываем ошибку (разницу между истинными значениями и предсказанными)
+        error = y - y_pred
+
+        # Вычисляем MSE
+        mse = np.mean(np.square(error))
+
+        return mse
         raise NotImplementedError('BaseDescent calc_loss function not implemented')
 
     def predict(self, x: np.ndarray) -> np.ndarray:
@@ -84,6 +94,10 @@ class BaseDescent:
         :return: prediction: np.ndarray
         """
         # TODO: implement prediction function
+        # Линейная регрессия: y_pred = Xw
+        y_pred = np.dot(x, self.w)
+
+        return y_pred
         raise NotImplementedError('BaseDescent predict function not implemented')
 
 
@@ -98,10 +112,24 @@ class VanillaGradientDescent(BaseDescent):
         :return: weight difference (w_{k + 1} - w_k): np.ndarray
         """
         # TODO: implement updating weights function
-        raise NotImplementedError('VanillaGradientDescent update_weights function not implemented')
+        # Обновляем веса по формуле w_{k+1} = w_k - eta * gradient
+        weight_diff = self.learning_rate * gradient
+        self.w -= weight_diff
 
+        return weight_diff
+        
     def calc_gradient(self, x: np.ndarray, y: np.ndarray) -> np.ndarray:
         # TODO: implement calculating gradient function
+        # Рассчитываем предсказания
+        y_pred = self.predict(x)
+
+        # Вычисляем ошибку (разницу между истинными значениями и предсказанными)
+        error = y - y_pred
+
+        # Вычисляем градиент: -2/N * X^T * error
+        gradient = -2 / x.shape[0] * np.dot(x.T, error)
+
+        return gradient
         raise NotImplementedError('VanillaGradientDescent calc_gradient function not implemented')
 
 
@@ -120,6 +148,24 @@ class StochasticDescent(VanillaGradientDescent):
 
     def calc_gradient(self, x: np.ndarray, y: np.ndarray) -> np.ndarray:
         # TODO: implement calculating gradient function
+        # Сначала случайным образом выбираем индексы для мини-батча
+        N = x.shape[0]  # Количество примеров
+        batch_indices = np.random.choice(N, self.batch_size, replace=False)
+
+        # Получаем подмножество данных (мини-батч)
+        x_batch = x[batch_indices]
+        y_batch = y[batch_indices]
+
+        # Рассчитываем предсказания для этого батча
+        y_pred = self.predict(x_batch)
+
+        # Ошибка для этого батча
+        error = y_batch - y_pred
+
+        # Вычисляем градиент для MSE с L2-регуляризацией
+        gradient = -2 / self.batch_size * np.dot(x_batch.T, error) + 2 * self.lambda_ * self.w
+
+        return gradient
         raise NotImplementedError('StochasticDescent calc_gradient function not implemented')
 
 
@@ -140,6 +186,16 @@ class MomentumDescent(VanillaGradientDescent):
         :return: weight difference (w_{k + 1} - w_k): np.ndarray
         """
         # TODO: implement updating weights function
+        # Обновляем скорость (инерцию)
+        self.h = self.alpha * self.h + self.learning_rate * gradient
+
+        # Обновляем веса, двигаясь в сторону инерции
+        weight_diff = self.h
+
+        # Обновляем текущие веса
+        self.w -= weight_diff
+
+        return weight_diff
         raise NotImplementedError('MomentumDescent update_weights function not implemented')
 
 
@@ -166,6 +222,16 @@ class Adam(VanillaGradientDescent):
         :return: weight difference (w_{k + 1} - w_k): np.ndarray
         """
         # TODO: implement updating weights function
+        # Накопление квадратов градиентов
+        self.G += gradient ** 2
+
+        # Обновляем веса с учетом накопленных квадратов градиентов
+        weight_diff = (self.learning_rate / (np.sqrt(self.G) + self.epsilon)) * gradient
+
+        # Обновляем веса
+        self.w -= weight_diff
+
+        return weight_diff
         raise NotImplementedError('Adagrad update_weights function not implemented')
 
 
@@ -186,7 +252,8 @@ class BaseDescentReg(BaseDescent):
         """
         Calculate gradient of loss function and L2 regularization with respect to weights
         """
-        l2_gradient: np.ndarray = np.zeros_like(x.shape[1])  # TODO: replace with L2 gradient calculation
+        l2_gradient = self.mu * self.w  # TODO: replace with L2 gradient calculation
+
 
         return super().calc_gradient(x, y) + l2_gradient * self.mu
 
