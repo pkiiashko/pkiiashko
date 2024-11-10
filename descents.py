@@ -49,10 +49,7 @@ class BaseDescent:
         if not isinstance(dimension, int):
             raise TypeError(f"Expected 'dimension' to be an integer, got {type(dimension)}")
 
-        # Убедимся, что dimension положительное число
-        if dimension <= 0:
-            raise ValueError(f"Dimension must be a positive integer, got {dimension}")
-
+        
         self.dimension = dimension  # Инициализируем размерность как целое число
 
         self.w: np.ndarray = np.random.rand(self.dimension)
