@@ -226,24 +226,36 @@ class MomentumDescent(VanillaGradientDescent):
     """
 
     def __init__(self, dimension: int, lambda_: float = 1e-3, loss_function: LossFunction = LossFunction.MSE):
-        super().__init__(dimension, lambda_, loss_function)
-        self.alpha: float = 0.9
+        """
+        :param dimension: размерность данных
+        :param lambda_: коэффициент регуляризации
+        :param loss_function: функция потерь
+        """
+        # Вызов конструктора родительского класса для инициализации всех атрибутов
+        super().__init__(dimension=dimension, lambda_=lambda_, loss_function=loss_function)
+        
+        # Устанавливаем параметр инерции alpha
+        self.alpha = 0.9
 
-        self.h: np.ndarray = np.zeros(dimension)
+        # Инициализация "скорости" (momentum) h
+        self.h = np.zeros(dimension)
 
     def update_weights(self, gradient: np.ndarray) -> np.ndarray:
         """
-        Update weights with momentum
-        :return: weight difference (w_{k + 1} - w_k): np.ndarray
+        Обновление весов с использованием метода инерции (momentum).
+        :param gradient: градиент функции потерь
+        :return: разница весов (w_{k + 1} - w_k): np.ndarray
         """
-        self.h = self.alpha * self.h + self.lambda_ * gradient
+        # Обновление значения "скорости" (momentum)
+        self.h = self.alpha * self.h + self.learning_rate * gradient
 
-        weight_diff = self.learning_rate * self.h
+        # Обновление весов с использованием момента
+        weight_diff = self.h  # Разница весов
 
+        # Обновление весов
         self.w -= weight_diff
 
         return weight_diff
-
 
 class Adam(VanillaGradientDescent):
     """
