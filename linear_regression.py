@@ -1,9 +1,6 @@
 from __future__ import annotations
-
 from typing import List
-
 import numpy as np
-
 from descents import BaseDescent
 from descents import get_descent
 
@@ -33,6 +30,10 @@ class LinearRegression:
                 print(f"Converged at iteration {iteration}")
                 break
 
+        # После завершения обучения нужно добавить финальную потерю, если она еще не была добавлена
+        if len(self.loss_history) < self.max_iter:
+            self.loss_history.append(loss)
+
         return self
 
     def predict(self, x: np.ndarray) -> np.ndarray:
@@ -50,3 +51,4 @@ class LinearRegression:
         :param y: targets array
         """
         return self.descent.calc_loss(x, y)
+
