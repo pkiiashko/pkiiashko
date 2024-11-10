@@ -157,22 +157,17 @@ class VanillaGradientDescent(BaseDescent):
 
 
 class StochasticDescent(VanillaGradientDescent):
-    """
-    Stochastic gradient descent class
-    """
+    def __init__(self, dimension: int, lambda_: float = 1e-3, batch_size: int = 50, loss_function: LossFunction = LossFunction.MSE):
+        super().__init__(dimension, lambda_, loss_function)
+        self.batch_size = batch_size
 
-    def __init__(self, dimension: int, lambda_: float = 1e-3, batch_size: int = 50,
-                 loss_function: LossFunction = LossFunction.MSE, **kwargs):
-        """
-        :param batch_size: batch size (int)
-        :param dimension: размерность данных
-        :param lambda_: коэффициент регуляризации
-        :param loss_function: функция потерь
-        """
-        # Вызов конструктора родительского класса для инициализации весов и других параметров
-        super().__init__(dimension=dimension, lambda_=lambda_, loss_function=loss_function, **kwargs)
-        self.batch_size = batch_size  # Размер батча для стохастического градиентного спуска
-
+    def calc_loss(self, x: np.ndarray, y: np.ndarray) -> float:
+        """Вычисление функции потерь для стохастического градиентного спуска."""
+        y_pred = self.predict(x)  # Получаем предсказания
+        error = y - y_pred
+        mse = np.mean(np.square(error))  # Среднеквадратичная ошибка (MSE)
+        return mse
+        
     def calc_gradient(self, x: np.ndarray, y: np.ndarray) -> np.ndarray:
         """
         Вычисление градиента для стохастического градиентного спуска
